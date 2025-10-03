@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier la Tâche{% endblock %}
+
+{% block body %}
+<!-- Centered Form Container -->
+<div class="min-h-[70vh] flex items-center justify-center py-12">
+    <div class="w-full max-w-2xl mx-auto">
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <div class="mx-auto h-16 w-16 bg-warning-100 rounded-xl flex items-center justify-center mb-6">
+                <svg class="h-8 w-8 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Modifier la tâche</h1>
+            <p class="text-lg text-gray-600 max-w-lg mx-auto">
+                Mettez à jour les détails de votre tâche "{{ task.title }}".
+            </p>
+        </div>
+        
+        <!-- Form Card -->
+        {% embed 'components/card.html.twig' with {'class': 'animate-fade-in shadow-lg'} %}
+            {% block content %}
+                {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                    <!-- Task Title -->
+                    <div class="form-group">
+                        {{ form_label(form.title, null, {'label_attr': {'class': 'form-label text-base'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-input text-lg py-3'}}) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+                    
+                    <!-- Task Description -->
+                    <div class="form-group">
+                        {{ form_label(form.description, null, {'label_attr': {'class': 'form-label text-base'}}) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-input', 'rows': '4'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+                    
+                    <!-- Due Date and Status -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            {{ form_label(form.dueDate, null, {'label_attr': {'class': 'form-label text-base'}}) }}
+                            {{ form_widget(form.dueDate, {'attr': {'class': 'form-input'}}) }}
+                            {{ form_errors(form.dueDate) }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label text-base">Statut</label>
+                            <div class="flex items-center pt-2">
+                                {{ form_widget(form.isDone) }}
+                                {{ form_label(form.isDone, null, {'label_attr': {'class': 'ml-2 text-base text-gray-700'}}) }}
+                            </div>
+                            {{ form_errors(form.isDone) }}
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                        <div class="flex-1">
+                            {% embed 'components/button.html.twig' with {'href': path('app_task_list'), 'type': 'secondary', 'class': 'w-full justify-center'} %}
+                                {% block content %}Annuler{% endblock %}
+                            {% endembed %}
+                        </div>
+                        <div class="flex-1">
+                            {% embed 'components/button.html.twig' with {'buttonTag': 'submit', 'icon': 'check', 'class': 'w-full justify-center', 'size': 'lg'} %}
+                                {% block content %}Mettre à jour{% endblock %}
+                            {% endembed %}
+                        </div>
+                    </div>
+                {{ form_end(form, {'render_rest': false}) }}
+            {% endblock %}
+        {% endembed %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{#
+    Modal Component
+    
+    Parameters:
+    - id: unique modal ID (required)
+    - title: modal title
+    - size: 'sm', 'md', 'lg', 'xl' (default: 'md')
+    - class: additional CSS classes
+    
+    Blocks:
+    - title: modal title (alternative to parameter)
+    - footer: modal footer with actions
+    - default: modal body content
+#}
+
+{% set modalId = id|default('modal-' ~ random()) %}
+{% set modalSize = size|default('md') %}
+
+{% if modalSize == 'sm' %}
+    {% set sizeClass = 'max-w-md' %}
+{% elseif modalSize == 'lg' %}
+    {% set sizeClass = 'max-w-4xl' %}
+{% elseif modalSize == 'xl' %}
+    {% set sizeClass = 'max-w-6xl' %}
+{% else %}
+    {% set sizeClass = 'max-w-2xl' %}
+{% endif %}
+
+<div id="{{ modalId }}" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="{{ modalId }}-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeModal('{{ modalId }}')"></div>
+
+        <!-- Center modal -->
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle {{ sizeClass }} sm:w-full {{ class|default('') }} animate-bounce-in">
+            <!-- Modal header -->
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-center">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="{{ modalId }}-title">
+                            {% if block('title') is defined %}
+                                {{ block('title') }}
+                            {% else %}
+                                {{ title|default('Modal') }}
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="ml-3 flex h-7 items-center">
+                        <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500" onclick="closeModal('{{ modalId }}')">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal body -->
+            <div class="bg-white px-4 pb-4 sm:p-6">
+                {{ block('content') }}
+            </div>
+            
+            <!-- Modal footer -->
+            {% if block('footer') is defined %}
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    {{ block('footer') }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modals = document.querySelectorAll('[id^="modal-"]:not(.hidden)');
+        modals.forEach(modal => {
+            closeModal(modal.id);
+        });
+    }
+});
+</script>

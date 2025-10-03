@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvelle Tâche{% endblock %}
+
+{% block body %}
+<!-- Perfectly Centered Form Container -->
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-lg mx-auto">
+        <!-- Vertical Header Section -->
+        <div class="text-center mb-6">
+            <div class="mx-auto h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+            </div>
+            <h1 class="text-xl font-semibold text-gray-900 mb-2">Nouvelle Tâche</h1>
+            <p class="text-sm text-gray-500">
+                Créez une nouvelle tâche
+            </p>
+        </div>
+        
+        <!-- Centered Form Card -->
+        {% embed 'components/card.html.twig' with {'class': 'animate-fade-in'} %}
+            {% block content %}
+                {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+                    <!-- Task Title -->
+                    <div class="form-group">
+                        {{ form_label(form.title, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-input', 'placeholder': 'Ex: Terminer le rapport mensuel'}}) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+                    
+                    <!-- Task Description -->
+                    <div class="form-group">
+                        {{ form_label(form.description, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-input', 'rows': '3', 'placeholder': 'Description (optionnel)...'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+                    
+                    <!-- Due Date -->
+                    <div class="form-group">
+                        {{ form_label(form.dueDate, null, {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.dueDate, {'attr': {'class': 'form-input'}}) }}
+                        {{ form_errors(form.dueDate) }}
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="flex gap-3 pt-4">
+                        {% embed 'components/button.html.twig' with {'href': path('app_task_list'), 'type': 'secondary', 'class': 'flex-1 justify-center'} %}
+                            {% block content %}Annuler{% endblock %}
+                        {% endembed %}
+                        
+                        {% embed 'components/button.html.twig' with {'buttonTag': 'submit', 'class': 'flex-1 justify-center'} %}
+                            {% block content %}Créer{% endblock %}
+                        {% endembed %}
+                    </div>
+                {{ form_end(form, {'render_rest': false}) }}
+            {% endblock %}
+        {% endembed %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.querySelector('input[name="task[title]"]');
+    if (titleInput) {
+        titleInput.focus();
+    }
+});
+</script>
+{% endblock %}

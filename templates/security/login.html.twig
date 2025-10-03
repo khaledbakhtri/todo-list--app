@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block body %}
+<div class="min-h-[60vh] flex items-center justify-center py-12">
+    <div class="max-w-md w-full space-y-8 animate-fade-in">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-14 w-14 flex items-center justify-center rounded-xl bg-primary-100 mb-6">
+                <svg class="h-7 w-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                Bienvenue !
+            </h1>
+            <p class="text-gray-600 mb-6">
+                Connectez-vous pour accéder à vos tâches
+            </p>
+            <p class="text-sm text-gray-500">
+                Pas encore de compte ?
+                {% embed 'components/button.html.twig' with {'href': path('app_register'), 'type': 'secondary', 'size': 'sm', 'class': 'ml-2'} %}
+                    {% block content %}Créer un compte{% endblock %}
+                {% endembed %}
+            </p>
+        </div>
+        
+        <!-- Login Form -->
+        {% embed 'components/card.html.twig' %}
+            {% block content %}
+                {% if error %}
+                    {% embed 'components/alert.html.twig' with {'type': 'error', 'class': 'mb-6'} %}
+                        {% block content %}{{ error.messageKey|trans(error.messageData, 'security') }}{% endblock %}
+                    {% endembed %}
+                {% endif %}
+
+                <form method="post" class="space-y-6">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    
+                    <div class="form-group">
+                        <label for="inputEmail" class="form-label">Adresse email</label>
+                        <input 
+                            type="email" 
+                            value="{{ last_username }}" 
+                            name="_username" 
+                            id="inputEmail" 
+                            class="form-input" 
+                            placeholder="votre@email.com" 
+                            autocomplete="email" 
+                            required 
+                            autofocus
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputPassword" class="form-label">Mot de passe</label>
+                        <input 
+                            type="password" 
+                            name="_password" 
+                            id="inputPassword" 
+                            class="form-input" 
+                            placeholder="••••••••" 
+                            autocomplete="current-password" 
+                            required
+                        >
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input 
+                                type="checkbox" 
+                                name="_remember_me" 
+                                id="remember_me" 
+                                class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                            >
+                            <label for="remember_me" class="ml-2 text-sm text-gray-700">Se souvenir de moi</label>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        {% embed 'components/button.html.twig' with {'buttonTag': 'submit', 'class': 'w-full justify-center', 'size': 'lg'} %}
+                            {% block content %}
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                Se connecter
+                            {% endblock %}
+                        {% endembed %}
+                    </div>
+                </form>
+            {% endblock %}
+        {% endembed %}
+    </div>
+</div>
+{% endblock %}

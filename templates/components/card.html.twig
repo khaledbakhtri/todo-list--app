@@ -1,0 +1,38 @@
+{#
+    Card Component
+    
+    Parameters:
+    - hover: boolean - add hover effects
+    - class: additional CSS classes
+    
+    Blocks:
+    - header: optional header content
+    - footer: optional footer content
+    - default: main content
+#}
+
+{% set cardClass = 'card' %}
+{% if hover is defined and hover %}
+    {% set cardClass = 'card-hover' %}
+{% endif %}
+{% if class is defined %}
+    {% set cardClass = cardClass ~ ' ' ~ class %}
+{% endif %}
+
+<div class="{{ cardClass }} animate-slide-up">
+    {% if block('header') is defined %}
+        <div class="card-header">
+            {{ block('header') }}
+        </div>
+    {% endif %}
+    
+    <div class="card-body">
+        {{ block('content') }}
+    </div>
+    
+    {% if block('footer') is defined %}
+        <div class="card-footer">
+            {{ block('footer') }}
+        </div>
+    {% endif %}
+</div>

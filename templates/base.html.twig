@@ -1,17 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr" class="h-full">
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
-
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Todo App{% endblock %}</title>
+        <link rel="stylesheet" href="/build/app.css">
+        {% block stylesheets %}{% endblock %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-full">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <!-- Logo and brand -->
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center">
+                            <div class="bg-primary-600 rounded-lg p-1.5 mr-2">
+                                <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                </svg>
+                            </div>
+                            <h1 class="text-lg font-semibold text-gray-900 hidden sm:block">TodoApp</h1>
+                            <h1 class="text-base font-semibold text-gray-900 sm:hidden">Todo</h1>
+                        </div>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex items-center space-x-4">
+                        {% if app.user %}
+                            {% embed 'components/button.html.twig' with {'href': path('app_task_list'), 'type': 'secondary', 'size': 'sm'} %}
+                                {% block content %}
+                                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Mes Tâches
+                                {% endblock %}
+                            {% endembed %}
+                            
+                            {% embed 'components/button.html.twig' with {'href': path('app_task_new'), 'icon': 'plus', 'size': 'sm'} %}
+                                {% block content %}Nouvelle Tâche{% endblock %}
+                            {% endembed %}
+                            
+                            <div class="flex items-center space-x-3 ml-6 pl-6 border-l border-gray-300">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                        <span class="text-primary-600 font-medium text-sm">{{ app.user.firstName|first|upper }}</span>
+                                    </div>
+                                    <span class="text-sm text-gray-700 font-medium">{{ app.user.firstName }}</span>
+                                </div>
+                                {% embed 'components/button.html.twig' with {'href': path('app_logout'), 'type': 'secondary', 'size': 'sm'} %}
+                                    {% block content %}Déconnexion{% endblock %}
+                                {% endembed %}
+                            </div>
+                        {% else %}
+                            {% embed 'components/button.html.twig' with {'href': path('app_login'), 'type': 'secondary', 'size': 'sm'} %}
+                                {% block content %}Connexion{% endblock %}
+                            {% endembed %}
+                            {% embed 'components/button.html.twig' with {'href': path('app_register'), 'size': 'sm'} %}
+                                {% block content %}Inscription{% endblock %}
+                            {% endembed %}
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden flex items-center">
+                        <button type="button" class="btn-secondary btn-sm" onclick="toggleMobileMenu()" aria-label="Open menu">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation -->
+            <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-200">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    {% if app.user %}
+                        <a href="{{ path('app_task_list') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">📋 Mes Tâches</a>
+                        <a href="{{ path('app_task_new') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50">✨ Nouvelle Tâche</a>
+                        <hr class="my-2">
+                        <div class="px-3 py-2 text-sm text-gray-500">Connecté en tant que {{ app.user.firstName }}</div>
+                        <a href="{{ path('app_logout') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Déconnexion</a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Connexion</a>
+                        <a href="{{ path('app_register') }}" class="block px-3 py-2 rounded-md text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50">Inscription</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Flash messages -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            {% for message in app.flashes('success') %}
+                {% embed 'components/alert.html.twig' with {'type': 'success', 'dismissible': true} %}
+                    {% block content %}{{ message }}{% endblock %}
+                {% endembed %}
+            {% endfor %}
+            
+            {% for message in app.flashes('error') %}
+                {% embed 'components/alert.html.twig' with {'type': 'error', 'dismissible': true} %}
+                    {% block content %}{{ message }}{% endblock %}
+                {% endembed %}
+            {% endfor %}
+        </div>
+        
+        <!-- Main content -->
+        <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            {% block body %}{% endblock %}
+        </main>
+        
+        <!-- Footer -->
+        <footer class="bg-white border-t border-gray-200 mt-auto">
+            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-center items-center text-sm text-gray-500">
+                    <p>&copy; 2025 Todo App. Fait avec ❤️ et Symfony.</p>
+                </div>
+            </div>
+        </footer>
+        
+        {% block javascripts %}
+            <script>
+                function toggleMobileMenu() {
+                    const menu = document.getElementById('mobile-menu');
+                    menu.classList.toggle('hidden');
+                }
+                
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    const menu = document.getElementById('mobile-menu');
+                    const button = event.target.closest('button[onclick="toggleMobileMenu()"]');
+                    
+                    if (!menu.contains(event.target) && !button && !menu.classList.contains('hidden')) {
+                        menu.classList.add('hidden');
+                    }
+                });
+                
+                // Auto-hide alerts after 5 seconds
+                document.querySelectorAll('.alert').forEach(alert => {
+                    setTimeout(() => {
+                        if (alert.parentElement) {
+                            alert.style.transition = 'opacity 0.5s ease-out';
+                            alert.style.opacity = '0';
+                            setTimeout(() => alert.remove(), 500);
+                        }
+                    }, 5000);
+                });
+            </script>
+        {% endblock %}
     </body>
 </html>

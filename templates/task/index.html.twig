@@ -1,0 +1,268 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Tâches{% endblock %}
+
+{% block body %}
+<div class="space-y-8">
+    <!-- Header Section -->
+    <div class="text-center sm:text-left">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Mes Tâches</h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto sm:mx-0">Organisez et suivez vos tâches quotidiennes avec efficacité</p>
+        
+        {% if tasks|length > 0 %}
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto sm:mx-0">
+                {% set completedCount = tasks|filter(task => task.isDone)|length %}
+                {% set totalCount = tasks|length %}
+                {% set pendingCount = totalCount - completedCount %}
+                
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                    <div class="text-2xl font-bold text-primary-600">{{ totalCount }}</div>
+                    <div class="text-sm text-gray-600">Total</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                    <div class="text-2xl font-bold text-warning-600">{{ pendingCount }}</div>
+                    <div class="text-sm text-gray-600">En cours</div>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                    <div class="text-2xl font-bold text-success-600">{{ completedCount }}</div>
+                    <div class="text-sm text-gray-600">Terminées</div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Task Form Section -->
+    <div class="max-w-4xl mx-auto">
+        {% include 'task/new.html.twig' %}
+    </div>
+
+    <!-- Tasks Section -->
+    {% if tasks|length > 0 %}
+        <div class="space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 class="text-xl font-semibold text-gray-900">Vos tâches</h2>
+                
+                <!-- Filter buttons -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterTasks('all')" class="filter-btn active" data-filter="all">
+                        Toutes ({{ tasks|length }})
+                    </button>
+                    <button onclick="filterTasks('pending')" class="filter-btn" data-filter="pending">
+                        En cours ({{ tasks|filter(task => not task.isDone)|length }})
+                    </button>
+                    <button onclick="filterTasks('completed')" class="filter-btn" data-filter="completed">
+                        Terminées ({{ tasks|filter(task => task.isDone)|length }})
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" id="tasks-container">
+                {% for task in tasks %}
+                    {% set isOverdue = task.dueDate and task.dueDate < "now"|date_modify("-1 day") and not task.isDone %}
+                    
+                    <div class="task-item {{ task.isDone ? 'task-completed' : 'task-pending' }}" data-task-id="{{ task.id }}">
+                        {% embed 'components/card.html.twig' with {'hover': true, 'class': 'h-full ' ~ (isOverdue ? 'border-error-300 bg-error-50' : '')} %}
+                            {% block content %}
+                                <div class="space-y-4">
+                                    <!-- Task header with status -->
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <form method="post" action="{{ path('app_task_toggle', {'id': task.id}) }}" class="inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ task.id) }}">
+                                                    <button type="submit" class="text-lg hover:scale-110 transition-transform">
+                                                        {% if task.isDone %}
+                                                            <span class="text-success-600">✅</span>
+                                                        {% else %}
+                                                            <span class="text-gray-400 hover:text-success-600">⭕</span>
+                                                        {% endif %}
+                                                    </button>
+                                                </form>
+                                                <h3 class="font-semibold text-gray-900 {{ task.isDone ? 'line-through text-gray-500' : '' }} text-balance">
+                                                    {{ task.title }}
+                                                </h3>
+                                            </div>
+                                            
+                                            {% if task.description %}
+                                                <p class="text-gray-600 text-sm leading-relaxed {{ task.isDone ? 'line-through' : '' }}">
+                                                    {{ task.description|length > 100 ? task.description|slice(0, 100) ~ '...' : task.description }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Task meta info -->
+                                    <div class="flex items-center justify-between text-sm">
+                                        <div class="flex items-center gap-2 text-gray-500">
+                                            {% if task.dueDate %}
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                <span class="{{ isOverdue ? 'text-error-600 font-medium' : '' }}">
+                                                    {{ task.dueDate|date('d/m/Y') }}
+                                                    {% if isOverdue %}
+                                                        <span class="text-error-600 font-medium">(En retard)</span>
+                                                    {% endif %}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-gray-400">Pas d'échéance</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if task.isDone %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-100 text-success-800">
+                                                ✓ Terminée
+                                            </span>
+                                        {% elseif isOverdue %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error-100 text-error-800">
+                                                ⚠ En retard
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning-100 text-warning-800">
+                                                ⏳ En cours
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Task actions -->
+                                    <div class="flex justify-end space-x-2 pt-2 border-t border-gray-100">
+                                        {% embed 'components/button.html.twig' with {'href': path('app_task') ~ '?edit=' ~ task.id, 'type': 'secondary', 'size': 'sm', 'icon': 'edit'} %}
+                                            {% block content %}Modifier{% endblock %}
+                                        {% endembed %}
+                                        
+                                        {% embed 'components/modal.html.twig' with {'id': 'delete-modal-' ~ task.id, 'title': 'Supprimer la tâche', 'size': 'sm'} %}
+                                            {% block content %}
+                                                <p class="text-gray-600">Êtes-vous sûr de vouloir supprimer "{{ task.title }}" ? Cette action ne peut pas être annulée.</p>
+                                            {% endblock %}
+                                            
+                                            {% block footer %}
+                                                {% embed 'components/button.html.twig' with {'type': 'secondary', 'onclick': 'closeModal("delete-modal-' ~ task.id ~ '")'} %}
+                                                    {% block content %}Annuler{% endblock %}
+                                                {% endembed %}
+                                                
+                                                <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" class="inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+                                                    {% embed 'components/button.html.twig' with {'buttonTag': 'submit', 'type': 'danger', 'icon': 'trash'} %}
+                                                        {% block content %}Supprimer{% endblock %}
+                                                    {% endembed %}
+                                                </form>
+                                            {% endblock %}
+                                        {% endembed %}
+                                        
+                                        {% embed 'components/button.html.twig' with {'type': 'danger', 'size': 'sm', 'onclick': 'openModal("delete-modal-' ~ task.id ~ '")', 'icon': 'trash'} %}
+                                            {% block content %}{% endblock %}
+                                        {% endembed %}
+                                    </div>
+                                </div>
+                            {% endblock %}
+                        {% endembed %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty state -->
+        <div class="text-center py-16">
+            <div class="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune tâche pour le moment</h3>
+            <p class="text-gray-600 mb-8">Commencez par créer votre première tâche pour mieux organiser votre quotidien.</p>
+            
+            {% embed 'components/button.html.twig' with {'href': '#', 'onclick': 'document.querySelector("input[name=\"task[title]\"]").focus()', 'icon': 'plus', 'size': 'lg'} %}
+                {% block content %}Créer ma première tâche{% endblock %}
+            {% endembed %}
+        </div>
+    {% endif %}
+</div>
+
+{% embed 'components/modal.html.twig' with {'id': 'task-success-modal', 'title': 'Tâche mise à jour !', 'size': 'sm'} %}
+    {% block content %}
+        <div class="text-center py-4">
+            <div class="mx-auto w-12 h-12 bg-success-100 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-success-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <p class="text-gray-600">Votre tâche a été mise à jour avec succès !</p>
+        </div>
+    {% endblock %}
+    
+    {% block footer %}
+        {% embed 'components/button.html.twig' with {'onclick': 'closeModal("task-success-modal")'} %}
+            {% block content %}Parfait !{% endblock %}
+        {% endembed %}
+    {% endblock %}
+{% endembed %}
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+// Filter functionality
+function filterTasks(filter) {
+    const tasks = document.querySelectorAll('.task-item');
+    const buttons = document.querySelectorAll('.filter-btn');
+    
+    // Update button states
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filter === filter) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Filter tasks
+    tasks.forEach(task => {
+        const isCompleted = task.classList.contains('task-completed');
+        const isPending = task.classList.contains('task-pending');
+        
+        let shouldShow = false;
+        
+        switch(filter) {
+            case 'all':
+                shouldShow = true;
+                break;
+            case 'completed':
+                shouldShow = isCompleted;
+                break;
+            case 'pending':
+                shouldShow = isPending;
+                break;
+        }
+        
+        if (shouldShow) {
+            task.style.display = 'block';
+            task.classList.add('animate-fade-in');
+        } else {
+            task.style.display = 'none';
+            task.classList.remove('animate-fade-in');
+        }
+    });
+}
+
+// Add CSS for filter buttons
+const style = document.createElement('style');
+style.textContent = `
+    .filter-btn {
+        @apply px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200;
+    }
+    .filter-btn.active {
+        @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700;
+    }
+`;
+document.head.appendChild(style);
+
+// Auto-refresh tasks every 30 seconds to update overdue status
+setInterval(() => {
+    // Only refresh if no modals are open
+    const openModals = document.querySelectorAll('[id^="modal-"]:not(.hidden)');
+    if (openModals.length === 0) {
+        // You could implement a fetch request here to update task statuses
+    }
+}, 30000);
+</script>
+{% endblock %}

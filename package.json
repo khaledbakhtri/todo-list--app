@@ -1,0 +1,13 @@
+{
+  "name": "todo-app-symfony",
+  "version": "1.0.0",
+  "description": "Professional Todo App with Symfony and Tailwind CSS",
+  "scripts": {
+    "build-css": "tailwindcss -i ./assets/styles/app.css -o ./public/build/app.css --watch",
+    "build-css-prod": "tailwindcss -i ./assets/styles/app.css -o ./public/build/app.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "tailwindcss": "^3.4.17"
+  }
+}
