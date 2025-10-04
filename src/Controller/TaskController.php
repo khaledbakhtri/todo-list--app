@@ -3,12 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Task;
-use App\Form\TaskType;
+use App\Form\TaskType; // Make sure this form type exists and is correctly defined
+use App\Repository\TaskRepository; // Add this if you plan to use it consistently
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted; // For easy access contro
 
 class TaskController extends AbstractController
 {
@@ -45,36 +47,59 @@ class TaskController extends AbstractController
         ]);
     }
 
-    #[Route('/tasks/{id}/edit', name: 'app_task_edit')]
-    public function edit(Request $request, EntityManagerInterface $entityManager, int $id): Response
-    {
-        $task = $entityManager->getRepository(Task::class)->find($id);
-        if (!$task || $task->getUser() !== $this->getUser()) {
-            throw $this->createNotFoundException('Tâche non trouvée');
-        }
-        
-        $form = $this->createForm(TaskType::class, $task);
-        $form->handleRequest($request);
+#[Route('/tasks/{id}/edit', name: 'app_task_edit')]
+public function edit(Request $request, EntityManagerInterface $entityManager, int $id): Response
+{
+    $task = $entityManager->getRepository(Task::class)->find($id);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+    if (!$task || $task->getUser() !== $this->getUser()) {
+        throw $this->createNotFoundException('Tâche non trouvée');
+    }
 
-            $this->addFlash('success', 'Tâche modifiée avec succès!');
+    // Capture original data BEFORE handling request
+    $originalData = [
+        'title' => $task->getTitle(),
+        'description' => $task->getDescription(),
+        'dueDate' => $task->getDueDate()?->format('Y-m-d'),
+        'isDone' => $task->isDone()
+    ];
+
+    $form = $this->createForm(TaskType::class, $task);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted()) {
+        if ($form->isValid()) {
+            // Compare submitted data
+            $submittedData = [
+                'title' => $task->getTitle(),
+                'description' => $task->getDescription(),
+                'dueDate' => $task->getDueDate()?->format('Y-m-d'),
+                'isDone' => $task->isDone()
+            ];
+
+            if ($submittedData === $originalData) {
+                $this->addFlash('info', 'Aucune modification détectée.');
+            } else {
+                $entityManager->flush();
+                $this->addFlash('success', 'Tâche modifiée avec succès!');
+            }
+
             return $this->redirectToRoute('app_task_list');
+        } else {
+            // Show form errors as flash messages
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
+            }
         }
-
-        return $this->render('task/edit.html.twig', [
-            'form' => $form->createView(),
-            'task' => $task,
-        ]);
     }
 
-    #[Route('/task', name: 'app_task')]
-    public function index(): Response
-    {
-        // Redirect old route to new task list
-        return $this->redirectToRoute('app_task_list');
-    }
+    return $this->render('task/edit.html.twig', [
+        'form' => $form->createView(),
+        'task' => $task,
+    ]);
+}
+
+
 
     #[Route('/task/delete/{id}', name: 'app_task_delete', methods: ['POST'])]
     public function delete(Request $request, EntityManagerInterface $entityManager, int $id): Response

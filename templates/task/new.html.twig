@@ -3,10 +3,8 @@
 {% block title %}Nouvelle Tâche{% endblock %}
 
 {% block body %}
-<!-- Perfectly Centered Form Container -->
 <div class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-lg mx-auto">
-        <!-- Vertical Header Section -->
         <div class="text-center mb-6">
             <div class="mx-auto h-12 w-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
                 <svg class="h-6 w-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,32 +17,40 @@
             </p>
         </div>
         
-        <!-- Centered Form Card -->
         {% embed 'components/card.html.twig' with {'class': 'animate-fade-in'} %}
             {% block content %}
                 {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
-                    <!-- Task Title -->
+                    
+                    {# !!! ADD THIS LINE FOR GLOBAL FORM ERRORS !!! #}
+                    {{ form_errors(form) }}
+
                     <div class="form-group">
                         {{ form_label(form.title, null, {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.title, {'attr': {'class': 'form-input', 'placeholder': 'Ex: Terminer le rapport mensuel'}}) }}
                         {{ form_errors(form.title) }}
                     </div>
                     
-                    <!-- Task Description -->
                     <div class="form-group">
                         {{ form_label(form.description, null, {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.description, {'attr': {'class': 'form-input', 'rows': '3', 'placeholder': 'Description (optionnel)...'}}) }}
                         {{ form_errors(form.description) }}
                     </div>
                     
-                    <!-- Due Date -->
                     <div class="form-group">
                         {{ form_label(form.dueDate, null, {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.dueDate, {'attr': {'class': 'form-input'}}) }}
                         {{ form_errors(form.dueDate) }}
                     </div>
+
+                    {# If you want isDone to be on the form #}
+                    {% if form.isDone is defined %}
+                        <div class="form-group flex items-center">
+                            {{ form_widget(form.isDone, {'attr': {'class': 'mr-2'}}) }}
+                            {{ form_label(form.isDone, null, {'label_attr': {'class': 'form-label mb-0'}}) }}
+                            {{ form_errors(form.isDone) }}
+                        </div>
+                    {% endif %}
                     
-                    <!-- Form Actions -->
                     <div class="flex gap-3 pt-4">
                         {% embed 'components/button.html.twig' with {'href': path('app_task_list'), 'type': 'secondary', 'class': 'flex-1 justify-center'} %}
                             {% block content %}Annuler{% endblock %}
@@ -54,21 +60,9 @@
                             {% block content %}Créer{% endblock %}
                         {% endembed %}
                     </div>
-                {{ form_end(form, {'render_rest': false}) }}
+                {{ form_end(form) }} {# REMOVE 'render_rest': false to ensure _token is rendered #}
             {% endblock %}
         {% endembed %}
     </div>
 </div>
-{% endblock %}
-
-{% block javascripts %}
-{{ parent() }}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const titleInput = document.querySelector('input[name="task[title]"]');
-    if (titleInput) {
-        titleInput.focus();
-    }
-});
-</script>
 {% endblock %}

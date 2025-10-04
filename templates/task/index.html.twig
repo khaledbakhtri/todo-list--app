@@ -12,7 +12,7 @@
         {% if tasks|length > 0 %}
             <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto sm:mx-0">
                 {% set completedCount = tasks|filter(task => task.isDone)|length %}
-                {% set totalCount = tasks|length %}
+                {% set totalCount = tasks|length %} 
                 {% set pendingCount = totalCount - completedCount %}
                 
                 <div class="bg-white rounded-lg p-4 border border-gray-200">
@@ -42,15 +42,20 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h2 class="text-xl font-semibold text-gray-900">Vos tâches</h2>
                 
-                <!-- Filter buttons -->
+                <!-- ✅ Filter buttons with Tailwind classes directly -->
                 <div class="flex flex-wrap gap-2">
-                    <button onclick="filterTasks('all')" class="filter-btn active" data-filter="all">
+                    <button onclick="filterTasks('all')" data-filter="all"
+                        class="filter-btn active px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-primary-600 text-white border-primary-600 hover:bg-primary-700 transition-colors duration-200">
                         Toutes ({{ tasks|length }})
                     </button>
-                    <button onclick="filterTasks('pending')" class="filter-btn" data-filter="pending">
+
+                    <button onclick="filterTasks('pending')" data-filter="pending"
+                        class="filter-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                         En cours ({{ tasks|filter(task => not task.isDone)|length }})
                     </button>
-                    <button onclick="filterTasks('completed')" class="filter-btn" data-filter="completed">
+
+                    <button onclick="filterTasks('completed')" data-filter="completed"
+                        class="filter-btn px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                         Terminées ({{ tasks|filter(task => task.isDone)|length }})
                     </button>
                 </div>
@@ -202,63 +207,28 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-// Filter functionality
 function filterTasks(filter) {
+    const allButtons = document.querySelectorAll('.filter-btn');
+    allButtons.forEach(btn => btn.classList.remove('active', 'bg-primary-600', 'text-white', 'border-primary-600'));
+    allButtons.forEach(btn => btn.classList.add('bg-white', 'text-gray-700', 'border-gray-300'));
+
+    const activeBtn = document.querySelector(`.filter-btn[data-filter="${filter}"]`);
+    activeBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+    activeBtn.classList.add('bg-primary-600', 'text-white', 'border-primary-600');
+
     const tasks = document.querySelectorAll('.task-item');
-    const buttons = document.querySelectorAll('.filter-btn');
-    
-    // Update button states
-    buttons.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.filter === filter) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Filter tasks
     tasks.forEach(task => {
-        const isCompleted = task.classList.contains('task-completed');
-        const isPending = task.classList.contains('task-pending');
-        
-        let shouldShow = false;
-        
-        switch(filter) {
-            case 'all':
-                shouldShow = true;
-                break;
-            case 'completed':
-                shouldShow = isCompleted;
-                break;
-            case 'pending':
-                shouldShow = isPending;
-                break;
-        }
-        
-        if (shouldShow) {
-            task.style.display = 'block';
-            task.classList.add('animate-fade-in');
-        } else {
+        task.style.display = 'block';
+        if (filter === 'pending' && task.classList.contains('task-completed')) {
             task.style.display = 'none';
-            task.classList.remove('animate-fade-in');
+        } else if (filter === 'completed' && task.classList.contains('task-pending')) {
+            task.style.display = 'none';
         }
     });
 }
 
-// Add CSS for filter buttons
-const style = document.createElement('style');
-style.textContent = `
-    .filter-btn {
-        @apply px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200;
-    }
-    .filter-btn.active {
-        @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700;
-    }
-`;
-document.head.appendChild(style);
-
 // Auto-refresh tasks every 30 seconds to update overdue status
 setInterval(() => {
-    // Only refresh if no modals are open
     const openModals = document.querySelectorAll('[id^="modal-"]:not(.hidden)');
     if (openModals.length === 0) {
         // You could implement a fetch request here to update task statuses

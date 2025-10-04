@@ -177,7 +177,7 @@
         {% endblock %}
         
         {% block footer %}
-            {% embed 'components/button.html.twig' with {'type': 'secondary', 'onclick': 'closeModal(\"delete-modal-' ~ task.id ~ '\")'} %}
+            {% embed 'components/button.html.twig' with {'type': 'secondary', 'onclick': 'closeModal("delete-modal-' ~ task.id ~ '")'} %}
                 {% block content %}Annuler{% endblock %}
             {% endembed %}
             
@@ -195,13 +195,45 @@
 
 {% block javascripts %}
 {{ parent() }}
+<style>
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        background: white;
+        color: #374151;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    .filter-btn:hover {
+        background: #f9fafb;
+    }
+    .filter-btn.active {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
+        box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
+    }
+    .task-item {
+        display: block;
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
 <script>
-// Filter functionality
 function filterTasks(filter) {
     const tasks = document.querySelectorAll('.task-item');
     const buttons = document.querySelectorAll('.filter-btn');
     
-    // Update button states
+    // Update active state
     buttons.forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.filter === filter) {
@@ -209,52 +241,26 @@ function filterTasks(filter) {
         }
     });
     
-    // Filter tasks with animation
     tasks.forEach(task => {
         const isCompleted = task.classList.contains('task-completed');
         const isPending = task.classList.contains('task-pending');
         
-        let shouldShow = false;
-        
-        switch(filter) {
-            case 'all':
-                shouldShow = true;
-                break;
-            case 'completed':
-                shouldShow = isCompleted;
-                break;
-            case 'pending':
-                shouldShow = isPending;
-                break;
-        }
+        let shouldShow = filter === 'all' || 
+                         (filter === 'completed' && isCompleted) || 
+                         (filter === 'pending' && isPending);
         
         if (shouldShow) {
             task.style.display = 'block';
             task.classList.add('animate-fade-in');
         } else {
             task.classList.remove('animate-fade-in');
-            setTimeout(() => {
-                if (!shouldShow) task.style.display = 'none';
-            }, 150);
+            setTimeout(() => task.style.display = 'none', 150);
         }
     });
 }
 
-// Delete modal functionality
 function openDeleteModal(taskId) {
     openModal('delete-modal-' + taskId);
 }
-
-// Add CSS for filter buttons
-const style = document.createElement('style');
-style.textContent = `
-    .filter-btn {
-        @apply px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-all duration-200;
-    }
-    .filter-btn.active {
-        @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700 shadow-md;
-    }
-`;
-document.head.appendChild(style);
 </script>
 {% endblock %}

@@ -3,14 +3,15 @@
 {% block title %}Modifier la Tâche{% endblock %}
 
 {% block body %}
-<!-- Centered Form Container -->
 <div class="min-h-[70vh] flex items-center justify-center py-12">
     <div class="w-full max-w-2xl mx-auto">
         <!-- Header Section -->
         <div class="text-center mb-8">
             <div class="mx-auto h-16 w-16 bg-warning-100 rounded-xl flex items-center justify-center mb-6">
                 <svg class="h-8 w-8 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                    </path>
                 </svg>
             </div>
             <h1 class="text-3xl font-bold text-gray-900 mb-4">Modifier la tâche</h1>
@@ -18,59 +19,93 @@
                 Mettez à jour les détails de votre tâche "{{ task.title }}".
             </p>
         </div>
-        
+
         <!-- Form Card -->
         {% embed 'components/card.html.twig' with {'class': 'animate-fade-in shadow-lg'} %}
             {% block content %}
                 {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
-                    <!-- Task Title -->
+
+                <!-- Task Title -->
+                <div class="form-group">
+                    {{ form_label(form.title, null, {'label_attr': {'class': 'form-label text-base'}}) }}
+                    {{ form_widget(form.title, {'attr': {'class': 'form-input text-lg py-3', 'data-original': task.title}}) }}
+                    {{ form_errors(form.title) }}
+                </div>
+
+                <!-- Task Description -->
+                <div class="form-group">
+                    {{ form_label(form.description, null, {'label_attr': {'class': 'form-label text-base'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-input', 'rows': 4, 'data-original': task.description}}) }}
+                    {{ form_errors(form.description) }}
+                </div>
+
+                <!-- Due Date and Status -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div class="form-group">
-                        {{ form_label(form.title, null, {'label_attr': {'class': 'form-label text-base'}}) }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-input text-lg py-3'}}) }}
-                        {{ form_errors(form.title) }}
+                        {{ form_label(form.dueDate, null, {'label_attr': {'class': 'form-label text-base'}}) }}
+                        {{ form_widget(form.dueDate, {'attr': {'class': 'form-input', 'data-original': task.dueDate ? task.dueDate|date('Y-m-d') : ''}}) }}
+                        {{ form_errors(form.dueDate) }}
                     </div>
-                    
-                    <!-- Task Description -->
                     <div class="form-group">
-                        {{ form_label(form.description, null, {'label_attr': {'class': 'form-label text-base'}}) }}
-                        {{ form_widget(form.description, {'attr': {'class': 'form-input', 'rows': '4'}}) }}
-                        {{ form_errors(form.description) }}
+                        <label class="form-label text-base">Statut</label>
+                        <div class="flex items-center pt-2">
+                            {{ form_widget(form.isDone, {'attr': {'data-original': task.isDone ? '1' : '0'}}) }}
+                            {{ form_label(form.isDone, null, {'label_attr': {'class': 'ml-2 text-base text-gray-700'}}) }}
+                        </div>
+                        {{ form_errors(form.isDone) }}
                     </div>
-                    
-                    <!-- Due Date and Status -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div class="form-group">
-                            {{ form_label(form.dueDate, null, {'label_attr': {'class': 'form-label text-base'}}) }}
-                            {{ form_widget(form.dueDate, {'attr': {'class': 'form-input'}}) }}
-                            {{ form_errors(form.dueDate) }}
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label text-base">Statut</label>
-                            <div class="flex items-center pt-2">
-                                {{ form_widget(form.isDone) }}
-                                {{ form_label(form.isDone, null, {'label_attr': {'class': 'ml-2 text-base text-gray-700'}}) }}
-                            </div>
-                            {{ form_errors(form.isDone) }}
-                        </div>
-                    </div>
-                    
-                    <!-- Form Actions -->
-                    <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-                        <div class="flex-1">
-                            {% embed 'components/button.html.twig' with {'href': path('app_task_list'), 'type': 'secondary', 'class': 'w-full justify-center'} %}
-                                {% block content %}Annuler{% endblock %}
-                            {% endembed %}
-                        </div>
-                        <div class="flex-1">
-                            {% embed 'components/button.html.twig' with {'buttonTag': 'submit', 'icon': 'check', 'class': 'w-full justify-center', 'size': 'lg'} %}
-                                {% block content %}Mettre à jour{% endblock %}
-                            {% endembed %}
-                        </div>
-                    </div>
-                {{ form_end(form, {'render_rest': false}) }}
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                    <a href="{{ path('app_task_list') }}"
+                        class="w-full justify-center py-3 px-4 bg-gray-100 text-gray-700 font-semibold rounded-lg shadow hover:bg-gray-200 text-center sm:flex-1">
+                        Annuler
+                    </a>
+
+                    <button type="submit"
+                        class="w-full justify-center py-3 px-4 bg-success-600 text-white font-semibold rounded-lg shadow hover:bg-success-700 sm:flex-1 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Mettre à jour
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
             {% endblock %}
         {% endembed %}
     </div>
 </div>
+
+{% block javascripts %}
+<script>
+    // Highlight fields if they were modified
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('form');
+        if (!form) return;
+
+        form.addEventListener('input', (e) => {
+            const field = e.target;
+            const original = field.dataset.original;
+            if (original !== undefined) {
+                if (field.type === 'checkbox') {
+                    if ((field.checked ? '1' : '0') !== original) {
+                        field.classList.add('border-warning-500');
+                    } else {
+                        field.classList.remove('border-warning-500');
+                    }
+                } else {
+                    if (field.value !== original) {
+                        field.classList.add('border-warning-500');
+                    } else {
+                        field.classList.remove('border-warning-500');
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}
